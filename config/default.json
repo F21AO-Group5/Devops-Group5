@@ -1,3 +1,4 @@
 {
-    "mongoURI":"mongodb+srv://Neha_Giliyar:SnowbellRuby124@cluster0.ih3uf.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"
+    "mongoURI":"mongodb+srv://Neha_Giliyar:SnowbellRuby124@cluster0.ih3uf.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0",
+    "JWT_SECRET":"d4c3b4b0893a9cfb9fbc8f1e132567899a7b8c4d123a6e78adf9c12345678901"
 }

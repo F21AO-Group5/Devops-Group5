@@ -1,6 +1,9 @@
 const express = require('express');
 const bcrypt = require('bcryptjs');
+const config = require('config');
+const jwt = require('jsonwebtoken');
 const User = require('../models/Users');
+const authMiddleware = require('../middleware/authMiddleware');
 
 const router = express.Router();
 
@@ -23,5 +26,32 @@ router.post('/register', async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 });
+
+// User Login
+router.post('/login', async (req, res) => {
+    try {
+      const { email, password } = req.body;
+      const user = await User.findOne({ email });
+      if (!user) return res.status(400).json({ message: 'Invalid email or password' });
+      
+      const isMatch = await bcrypt.compare(password, user.password);
+      if (!isMatch) return res.status(400).json({ message: 'Invalid email or password' });
+      
+      const token = jwt.sign({ id: user._id, role: user.role }, config.get('JWT_SECRET'), { expiresIn: '1h' });
+      res.json({ token, role: user.role, userId: user._id });
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+  
+// Protected Route - Fetch User Profile
+router.get('/profile', authMiddleware, async (req, res) => {
+    try {
+      const user = await User.findById(req.user.id).select('-password');
+      res.json(user);
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  });
 
 module.exports = router;
