@@ -1,8 +1,10 @@
+
 const express = require('express');
 const mongoose = require('mongoose');
 const config = require('config');
 const cors = require('cors');
 const userRoutes = require('./routes/userRoutes');
+const patientRoutes = require('./routes/patientRoutes'); 
 
 const app = express();
 
@@ -19,6 +21,7 @@ mongoose
 
 // Routes
 app.use('/api/auth', userRoutes);
+app.use('/api/patient', patientRoutes); 
 
 // Sample Route
 app.get('/', (req, res) => {
