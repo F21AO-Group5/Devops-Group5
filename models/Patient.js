@@ -12,10 +12,24 @@ const patientSchema = new Schema({
         required:true
     },
 
-    knownDiseases:{
-        type:[String],  //Diseases
-        default:[]
+    gender: { 
+        type: String, 
+        required: true, 
+        enum: ['male', 'female', 'other']
     },
+    
+    contact: {
+        type: String,
+        required: true 
+    },
+
+    treatmentHistory: [{       
+        diagnosis: String,
+        prescription: String,
+        referral: String,
+        date: { type: Date, default: Date.now }
+    }],
+     
     servicePoint:{
         type:String,  //OPD or A&E 
         required:true

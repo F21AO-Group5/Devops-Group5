@@ -12,11 +12,12 @@ router.post('/register', auth, async (req, res) => {
             return res.status(403).json({ msg: 'Access denied' });
         }
 
-        const { name, age, knownDiseases, servicePoint } = req.body;
+        const { name, age, gender, contact, servicePoint } = req.body;
         const newPatient = new Patient({
             name,
             age,
-            knownDiseases,
+            gender,
+            contact,
             servicePoint,
         });
 
@@ -31,7 +32,7 @@ router.post('/register', auth, async (req, res) => {
 router.get('/:id', auth, async (req, res) => {
     try {
         const user = await User.findById(req.user.id);
-        if (!user || !['doctor', 'nurse', 'admin'].includes(user.role)) {
+        if (!user || !['doctor', 'nurse', 'admin', 'paramedics'].includes(user.role)) {
             return res.status(403).json({ msg: 'Access denied' });
         }
 
