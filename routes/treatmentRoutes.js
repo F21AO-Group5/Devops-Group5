@@ -23,4 +23,15 @@ router.post('/:id/treatment', authMiddleware, roleMiddleware(['doctor','nurse'])
   }
 });
 
+// treatment record can be fetched by doctor or admin or paramedics 
+router.get('/:id/treatment', authMiddleware, roleMiddleware(['doctor', 'admin','paramedics']), async (req, res) => {
+    try {
+      const patient = await Patient.findById(req.params.id).select('treatmentHistory');
+      if (!patient) return res.status(404).json({ message: 'Patient not found' });
+      res.json(patient.treatmentHistory);
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
 module.exports = router;
