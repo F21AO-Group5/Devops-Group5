@@ -5,6 +5,8 @@ const Patient = require('../models/patient');
 
 const router = express.Router();
 
+//Patient treatment module by adding and fetching for respective roles
+
 // adding treatment record which are accesible by doctors and nurse only
 router.post('/:id/treatment', authMiddleware, roleMiddleware(['doctor','nurse']), async (req, res) => {
   try {
