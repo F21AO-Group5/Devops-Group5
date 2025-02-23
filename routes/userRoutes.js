@@ -4,6 +4,7 @@ const config = require('config');
 const jwt = require('jsonwebtoken');
 const User = require('../models/Users');
 const authMiddleware = require('../middleware/authMiddleware');
+const roleMiddleware = require('../middleware/roleMiddleware');
 
 const router = express.Router();
 
@@ -11,7 +12,7 @@ const router = express.Router();
 router.post('/register', async (req, res) => {
   try {
     const { name, email, password, role } = req.body;
-    if (!['admin', 'doctor', 'nurse', 'clerk'].includes(role)) {
+    if (!['admin', 'doctor', 'nurse', 'clerk', 'paramedics'].includes(role)) {
       return res.status(400).json({ message: 'Invalid role' });
     }
     const existingUser = await User.findOne({ email });
@@ -53,5 +54,15 @@ router.get('/profile', authMiddleware, async (req, res) => {
       res.status(500).json({ error: error.message });
     }
   });
+
+  // all user route accesable by Admin - all user information
+router.get('/all-users', authMiddleware, roleMiddleware(['admin']), async (req, res) => {
+  try {
+    const users = await User.find().select('-password');
+    res.json(users);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
 
 module.exports = router;
