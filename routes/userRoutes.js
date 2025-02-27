@@ -38,7 +38,7 @@ router.post('/login', async (req, res) => {
       const isMatch = await bcrypt.compare(password, user.password);
       if (!isMatch) return res.status(400).json({ message: 'Invalid email or password' });
       
-      const token = jwt.sign({ id: user._id, role: user.role }, config.get('JWT_SECRET'), { expiresIn: '1h' });
+      const token = jwt.sign({ id: user._id, role: user.role }, config.get('JWT_SECRET'), { expiresIn: '6h' });
       res.json({ token, role: user.role, userId: user._id });
     } catch (error) {
       res.status(500).json({ error: error.message });
@@ -62,6 +62,21 @@ router.get('/all-users', authMiddleware, roleMiddleware(['admin']), async (req, 
     res.json(users);
   } catch (error) {
     res.status(500).json({ error: error.message });
+  }
+});
+
+// Delete user by admin
+router.delete('/:id', authMiddleware, roleMiddleware(['admin']), async (req, res) => {
+  try {
+      const user = await User.findById(req.params.id);
+      if (!user) {
+          return res.status(404).json({ msg: 'User not found' });
+      }
+      
+      await User.findByIdAndDelete(req.params.id);
+      res.json({ msg: 'User deleted successfully' });
+  } catch (error) {
+      res.status(500).json({ error: 'Server error' });
   }
 });
 
