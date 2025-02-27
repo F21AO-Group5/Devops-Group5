@@ -1,43 +1,37 @@
 const mongoose = require('mongoose');
-
+ 
 const LabRegistrationSchema = new mongoose.Schema({
     patient_Id: {
          type: mongoose.Schema.Types.ObjectId,
          ref: 'Patient',
-        required: true
-        
+        required: true      
     },
-    doctor_Id: { 
+    doctor_Id: {
         
          type: mongoose.Schema.Types.ObjectId,
          ref: 'User',
-        required: true
-        
+        required: true      
     },
-    labTest: { 
+    labTest: {
         
          type: String,
-         required: true
-         
+         required: true    
     },
-    testDate: { 
-        
-         type: Date,
-         required: true
-         
-    },
+    resultFiles: [{ type: String }],
     result: {
-
+ 
          type: String,
          default: 'Pending'
          
     },
-    resultPublishedOn: { 
+    resultPublishedOn: {
         type: Date
-
     },
- });
+    updatedBy: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: 'User'
+     }
+});
  
- const LabRegistration = mongoose.model('LabRegistration', LabRegistrationSchema);
- module.exports = LabRegistration;
- 
+const LabRegistration = mongoose.model('LabRegistration', LabRegistrationSchema);
+module.exports = LabRegistration;
