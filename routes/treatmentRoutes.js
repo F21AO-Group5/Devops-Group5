@@ -51,4 +51,6 @@ router.put('/:treatmentId', authMiddleware, roleMiddleware(['doctor','paramedics
   }
 });
 
+
+
 module.exports = router;
