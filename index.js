@@ -9,7 +9,7 @@ const patientRoutes = require('./routes/patientRoutes');
 const treatmentRoutes = require('./routes/treatmentRoutes');
 const patientReferralRoutes= require('./routes/patient_referralRoutes');
 const labRegistrationRoutes=require('./routes/lab_RegisterationRoutes');
-
+const labResultsRoutes = require('./routes/lab_resultsRoute');
 
 const app = express();
 
@@ -30,6 +30,7 @@ app.use('/api/patient', patientRoutes);
 app.use('/api/treatment', treatmentRoutes); 
 app.use('/api/patientreferral',patientReferralRoutes);
 app.use('/api/labregistration',labRegistrationRoutes);
+app.use('/api/lab',labResultsRoutes);
 
 // Sample Route
 app.get('/', (req, res) => {
@@ -39,4 +40,3 @@ app.get('/', (req, res) => {
 // Start Server
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
-

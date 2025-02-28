@@ -9,7 +9,7 @@ const router = express.Router();
 //Patient treatment module by adding and fetching for respective roles
 
 // adding treatment record which are accesible by doctors and nurse only
-router.post('/:id/treatment', authMiddleware, roleMiddleware(['doctor','paramedics']), async (req, res) => {
+router.post('/:id', authMiddleware, roleMiddleware(['doctor','paramedics']), async (req, res) => {
   try {
     const { diagnosis, prescription, referral } = req.body;
     const patient = await Patient.findById(req.params.id);
@@ -50,7 +50,6 @@ router.put('/:treatmentId', authMiddleware, roleMiddleware(['doctor','paramedics
     res.status(500).json({ error: error.message });
   }
 });
-
 
 
 module.exports = router;
