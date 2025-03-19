@@ -24,7 +24,13 @@ pipeline {
                 echo 'Pushing images to Docker Hub...'
                 sh 'docker login -u $ak2267 -p $Mahin@2718$'
                 sh 'docker tag user-service $DOCKER_HUB_USER/user-service'
+                sh 'docker tag patient-service $DOCKER_HUB_USER/patient-service'
+                sh 'docker tag referral-service $DOCKER_HUB_USER/referral-service'
+                sh 'docker tag lab-service $DOCKER_HUB_USER/lab-service'
                 sh 'docker push $DOCKER_HUB_USER/user-service'
+                sh 'docker push $DOCKER_HUB_USER/patient-service'
+                sh 'docker push $DOCKER_HUB_USER/referral-service'
+                sh 'docker push $DOCKER_HUB_USER/lab-service'
             }
         }
 
@@ -32,6 +38,7 @@ pipeline {
             steps {
                 echo 'Deploying services...'
                 sh 'docker-compose down'
+                sh 'docker-compose pull'
                 sh 'docker-compose up -d'
             }
         }
