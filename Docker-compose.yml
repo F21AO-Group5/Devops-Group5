@@ -1,0 +1,64 @@
+version: '3.8'
+services:
+  mongo:
+    image: mongo
+    container_name: mongodb
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+
+  user-service:
+    build: ./user-service
+    ports:
+      - "4001:3001"
+    depends_on:
+      - mongo
+    volumes:
+      - ./user-service:/app
+      - /app/node_modules
+    networks:
+      - app-network
+
+  patient-service:
+    build: ./patient-service
+    ports:
+      - "4002:3002"
+    depends_on:
+      - mongo
+    volumes:
+      - ./patient-service:/app
+      - /app/node_modules
+    networks:
+      - app-network
+
+  referral-service:
+    build: ./referral-service
+    ports:
+      - "4003:3003"
+    depends_on:
+      - mongo
+    volumes:
+      - ./referral-service:/app
+      - /app/node_modules
+    networks:
+      - app-network
+
+  lab-service:
+    build: ./lab-service
+    ports:
+      - "4004:3004"
+    depends_on:
+      - mongo
+    volumes:
+      - ./lab-service:/app
+      - /app/node_modules
+    networks:
+      - app-network
+
+volumes:
+  mongo-data:
+
+networks:
+  app-network:
+    driver: bridge
