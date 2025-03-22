@@ -9,6 +9,20 @@ pipeline {
             }
         }
 
+        stages {
+        stage('Build') {
+            steps {
+                echo 'Building...'
+                jiraSendBuildInfo site: 'f21ao-group5.atlassian.net'
+            }
+        }
+        stage('Deploy') {
+            steps {
+                echo 'Deploying...'
+                jiraSendDeploymentInfo site: 'f21ao-group5.atlassian.net'
+            }
+        }
+
         stage('Build Docker Images') {
             steps {
                 echo 'Building Docker images...'
