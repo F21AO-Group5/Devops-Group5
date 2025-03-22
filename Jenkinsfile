@@ -12,13 +12,30 @@ pipeline {
         stage('Build') {
             steps {
                 echo 'Building...'
-                jiraSendBuildInfo site: 'f21ao-group5.atlassian.net'
+            }
+            post {
+                always {
+                    jiraSendBuildInfo site: 'f21ao-group5.atlassian.net'
+                }
             }
         }
-        stage('Deploy') {
+
+        stage('Deploy - Staging') {
+            when {
+                branch 'main'
+            }
             steps {
-                echo 'Deploying...'
-                jiraSendDeploymentInfo site: 'f21ao-group5.atlassian.net'
+                echo 'Deploying to Staging from main...'
+            }
+            post {
+                always {
+                    jiraSendDeploymentInfo(
+                        environmentId: 'us-stg-1', 
+                        environmentName: 'us-stg-1', 
+                        environmentType: 'staging', 
+                        site: 'f21ao-group5.atlassian.net'
+                    )
+                }
             }
         }
 
