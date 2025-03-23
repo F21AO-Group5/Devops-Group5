@@ -3,6 +3,7 @@ const express = require('express');
 const mongoose = require('mongoose');
 const config = require('config');
 const cors = require('cors');
+
  
 const patientReferralRoutes= require('./routes/patient_referralRoutes');
  
@@ -30,3 +31,5 @@ app.get('/', (req, res) => {
 // Start Server
 const PORT = process.env.PORT || 3003;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+
+module.exports =  app;

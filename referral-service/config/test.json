@@ -1,0 +1,4 @@
+{
+    "mongoURI": "mongodb://localhost:27017/referral-service-test",
+    "JWT_SECRET": "test-secret-123"
+}
