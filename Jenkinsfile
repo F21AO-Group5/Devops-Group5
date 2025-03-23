@@ -17,7 +17,7 @@ pipeline {
                     echo "Current PATH: $PATH"
                     echo "Docker location: $(which docker)"
                     echo "Docker version: $(docker --version)"
-                    echo "Docker socket exists: $(test -S /Users/adarshkumar/.docker/run/docker.sock && echo "Yes" || echo "No")
+                    echo "Docker socket exists: $(test -S /Users/adarshkumar/.docker/run/docker.sock && echo "Yes" || echo "No")"
                     echo "Docker context: $(docker context ls)"
                 '''
             }
