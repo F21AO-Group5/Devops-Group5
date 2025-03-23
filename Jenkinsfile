@@ -2,8 +2,7 @@ pipeline {
     agent any
 
     environment {
-        // Docker Hub username and credentials
-        DOCKER_CREDENTIALS = credentials('docker-hub-token')
+        // Docker Hub username (not a secret, just for image tagging)
         DOCKERHUB_ACCOUNT = 'ak2267'  // Your Docker Hub username
         PATH = "/usr/local/bin:/opt/homebrew/bin:${env.PATH}"  // Add both possible Docker paths
         DOCKER_HOST = "unix:///Users/adarshkumar/.docker/run/docker.sock"  // Correct Docker socket path
@@ -49,10 +48,12 @@ pipeline {
 
         stage('Docker Hub Login') {
             steps {
-                sh '''
-                    echo "$DOCKER_CREDENTIALS_PSW" | docker login -u "$DOCKER_CREDENTIALS_USR" --password-stdin
-                    docker info
-                '''
+                withCredentials([usernamePassword(credentialsId: 'docker-hub-token', passwordVariable: 'DOCKER_PASSWORD', usernameVariable: 'DOCKER_USERNAME')]) {
+                    sh '''
+                        echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
+                        docker info
+                    '''
+                }
             }
         }
 
