@@ -46,32 +46,26 @@ pipeline {
             }
         }
 
-        stage('Docker Hub Login') {
+        stage('Docker Hub Login and Push') {
             steps {
                 withCredentials([usernamePassword(credentialsId: 'docker-hub-id', passwordVariable: 'DOCKER_PASSWORD', usernameVariable: 'DOCKER_USERNAME')]) {
                     sh '''
                         echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
                         docker info
+                        
+                        # Push images with error handling
+                        services=("user-service" "patient-service" "referral-service" "lab-service")
+                        for service in "${services[@]}"; do
+                            echo "Pushing $DOCKERHUB_ACCOUNT/$service:$BUILD_NUMBER to Docker Hub..."
+                            if docker push $DOCKERHUB_ACCOUNT/$service:$BUILD_NUMBER; then
+                                echo "Successfully pushed $service image"
+                            else
+                                echo "Failed to push $service image. Check Docker Hub permissions and connection."
+                                exit 1
+                            fi
+                        done
                     '''
                 }
-            }
-        }
-
-        stage('Push Images to Docker Hub') {
-            steps {
-                // Push all service images to Docker Hub with enhanced error handling
-                sh '''
-                    services=("user-service" "patient-service" "referral-service" "lab-service")
-                    for service in "${services[@]}"; do
-                        echo "Pushing $DOCKERHUB_ACCOUNT/$service:$BUILD_NUMBER to Docker Hub..."
-                        if docker push $DOCKERHUB_ACCOUNT/$service:$BUILD_NUMBER; then
-                            echo "Successfully pushed $service image"
-                        else
-                            echo "Failed to push $service image. Check Docker Hub permissions and connection."
-                            exit 1
-                        fi
-                    done
-                '''
             }
         }
 
