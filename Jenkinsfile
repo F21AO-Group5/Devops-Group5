@@ -118,6 +118,35 @@ pipeline {
                                 "./test/**/**.test.js" || exit 1
                         '''
                     }
+
+                    // Run Referral Service Tests
+                    dir('referral-service') {
+                        sh '''
+                            echo "Installing dependencies for referral-service..."
+                            npm install
+                            
+                            # Install specific version of test reporter and required dependencies
+                            npm install --save-dev mocha@9.2.2 mocha-junit-reporter@2.2.0 chai@4.3.7 chai-http@4.3.0
+                            
+                            echo "Running referral-service tests..."
+                            export NODE_ENV=test
+                            export MOCHA_FILE="test-results.xml"
+                            export MONGO_URI="mongodb://localhost:27018/referral-service-test"
+                            export JWT_SECRET="test-secret"
+                            
+                            # Ensure mocha has execute permissions
+                            chmod +x node_modules/.bin/mocha
+                            
+                            # Run tests using node directly instead of npx
+                            ./node_modules/.bin/mocha \
+                                --recursive \
+                                --timeout 5000 \
+                                --reporter mocha-junit-reporter \
+                                --reporter-options mochaFile=./test-results.xml \
+                                --exit \
+                                "./test/**/**.test.js" || exit 1
+                        '''
+                    }
                 }
             }
             post {
