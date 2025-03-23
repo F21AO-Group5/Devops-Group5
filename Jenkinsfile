@@ -71,9 +71,17 @@ pipeline {
 
         stage('Deploy with Docker Compose') {
             steps {
-                // Deploy all containers using docker-compose
-                // (Ensure docker-compose.yml is configured to use the above image tags)
-                sh 'docker-compose up -d'
+                // Clean up existing containers and deploy new ones
+                sh '''
+                    # Stop and remove existing containers
+                    docker-compose down --remove-orphans
+                    
+                    # Remove the mongodb container specifically if it exists
+                    docker rm -f mongodb || true
+                    
+                    # Deploy all containers using docker-compose
+                    docker-compose up -d
+                '''
             }
         }
     }
