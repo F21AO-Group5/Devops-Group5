@@ -84,7 +84,8 @@ pipeline {
                                 --recursive \
                                 --timeout 5000 \
                                 --reporter mocha-junit-reporter \
-                                "./test/**/*.test.js"
+                                --exit \
+                                "./test/**/*.test.js" || exit 1
                         '''
                     }
                 }
