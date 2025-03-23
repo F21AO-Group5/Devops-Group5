@@ -4,9 +4,25 @@ pipeline {
     environment {
         // Docker Hub username (not a secret, just for image tagging)
         DOCKERHUB_ACCOUNT = 'ak2267'  // TODO: replace with your Docker Hub username
+        PATH = "/usr/local/bin:/opt/homebrew/bin:${env.PATH}"  // Add both possible Docker paths
+        DOCKER_HOST = "unix:///Users/adarshkumar/.docker/run/docker.sock"  // Correct Docker socket path
+        DOCKER_CONTEXT = "desktop-linux"  // Docker context
+        HOME = "/Users/adarshkumar"  // Set home directory
     }
 
     stages {
+        stage('Debug Environment') {
+            steps {
+                sh '''
+                    echo "Current PATH: $PATH"
+                    echo "Docker location: $(which docker)"
+                    echo "Docker version: $(docker --version)"
+                    echo "Docker socket exists: $(test -S /Users/adarshkumar/.docker/run/docker.sock && echo "Yes" || echo "No")
+                    echo "Docker context: $(docker context ls)"
+                '''
+            }
+        }
+
         stage('Checkout Repository') {
             steps {
                 // Clone the GitHub repo (uses the Jenkins built-in 'git' step)
