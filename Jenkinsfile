@@ -2,8 +2,9 @@ pipeline {
     agent any
 
     environment {
-        // Docker Hub username (not a secret, just for image tagging)
-        DOCKERHUB_ACCOUNT = 'ak2267'  // TODO: replace with your Docker Hub username
+        // Docker Hub username and credentials
+        DOCKER_CREDENTIALS = credentials('docker-hub-token')
+        DOCKERHUB_ACCOUNT = 'ak2267'  // Your Docker Hub username
         PATH = "/usr/local/bin:/opt/homebrew/bin:${env.PATH}"  // Add both possible Docker paths
         DOCKER_HOST = "unix:///Users/adarshkumar/.docker/run/docker.sock"  // Correct Docker socket path
         DOCKER_CONTEXT = "desktop-linux"  // Docker context
@@ -48,18 +49,10 @@ pipeline {
 
         stage('Docker Hub Login') {
             steps {
-                // Use Jenkins credentials for Docker Hub login (usernamePassword type)
-                withCredentials([usernamePassword(
-                    credentialsId: 'docker-hub-token',       
-                    usernameVariable: 'DOCKERHUB_USER',   
-                    passwordVariable: 'DOCKERHUB_TOKEN'    
-                )]) {
-                    // Docker login using token (token will be masked in output)
-                    sh '''
-                        echo "$DOCKERHUB_TOKEN" | docker login -u $DOCKERHUB_USER --password-stdin
-                        docker info
-                    '''
-                }
+                sh '''
+                    echo "$DOCKER_CREDENTIALS_PSW" | docker login -u "$DOCKER_CREDENTIALS_USR" --password-stdin
+                    docker info
+                '''
             }
         }
 
