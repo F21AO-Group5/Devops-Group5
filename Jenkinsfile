@@ -24,6 +24,12 @@ pipeline {
             }
         }
 
+        stage('Docker Test') {
+            steps {
+                sh 'docker --version'
+            }
+        }
+
         stage('Docker Hub Login') {
             steps {
                 // Use Jenkins credentials for Docker Hub login (usernamePassword type)
