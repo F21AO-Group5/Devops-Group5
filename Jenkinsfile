@@ -30,6 +30,48 @@ pipeline {
             }
         }
 
+        stage('Run Tests') {
+            environment {
+                // Test environment variables
+                NODE_ENV = 'test'
+                MONGO_URI = 'mongodb://localhost:27017/user-service-test'
+                JWT_SECRET = 'test-secret'
+            }
+            steps {
+                script {
+                    // Start MongoDB container for testing
+                    sh '''
+                        docker run -d --name mongodb-test -p 27017:27017 mongo:latest
+                        sleep 5  # Wait for MongoDB to start
+                    '''
+                    
+                    dir('user-service') {
+                        // Install dependencies and run tests
+                        sh '''
+                            echo "Installing dependencies for user-service..."
+                            npm install
+                            
+                            # Install test reporter
+                            npm install -g mocha-junit-reporter
+                            
+                            echo "Running user-service tests..."
+                            # Run tests with JUnit reporter for Jenkins integration
+                            MOCHA_FILE=./test-results.xml npx mocha --recursive --timeout 5000 --reporter mocha-junit-reporter
+                        '''
+                    }
+                }
+            }
+            post {
+                always {
+                    // Archive the test results
+                    junit allowEmptyResults: true, testResults: '**/test-results.xml'
+                    
+                    // Clean up test container
+                    sh 'docker rm -f mongodb-test || true'
+                }
+            }
+        }
+
         stage('Build Docker Images') {
             steps {
                 // Build each service's Docker image and tag with Jenkins build number
