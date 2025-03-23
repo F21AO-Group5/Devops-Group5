@@ -25,7 +25,6 @@ pipeline {
 
         stage('Checkout Repository') {
             steps {
-                // Clone the GitHub repo (uses the Jenkins built-in 'git' step)
                 git url: 'https://github.com/F21AO-Group5/Devops-Group5.git', branch: 'main'
             }
         }
@@ -38,7 +37,6 @@ pipeline {
             }
             steps {
                 script {
-                    // Clean up any existing test containers first
                     sh '''
                         echo "Cleaning up any existing test containers..."
                         docker rm -f mongodb-test || true
@@ -147,6 +145,43 @@ pipeline {
                                 "./test/**/**.test.js" || exit 1
                         '''
                     }
+
+                    // Run Lab Service Tests
+                    dir('lab-service') {
+                        sh '''
+                            echo "Installing dependencies for lab-service..."
+                            npm install
+                            
+                            # Install specific version of test reporter and required dependencies
+                            npm install --save-dev mocha@9.2.2 mocha-junit-reporter@2.2.0 chai@4.3.7 chai-http@4.3.0
+                            
+                            echo "Running lab-service tests..."
+                            export NODE_ENV=test
+                            export MOCHA_FILE="test-results.xml"
+                            export MONGO_URI="mongodb://localhost:27018/lab-service-test"
+                            export JWT_SECRET="test-secret"
+                            
+                            # Create test file directories
+                            mkdir -p test/lab-tests
+                            touch test/lab-tests/test-file.jpg
+                            touch test/lab-tests/test-file.txt
+                            
+                            # Ensure mocha has execute permissions
+                            chmod +x node_modules/.bin/mocha
+                            
+                            # Run tests using node directly instead of npx
+                            ./node_modules/.bin/mocha \
+                                --recursive \
+                                --timeout 5000 \
+                                --reporter mocha-junit-reporter \
+                                --reporter-options mochaFile=./test-results.xml \
+                                --exit \
+                                "./test/**/**.test.js" || exit 1
+                                
+                            # Clean up test files
+                            rm -f test/lab-tests/test-file.jpg test/lab-tests/test-file.txt
+                        '''
+                    }
                 }
             }
             post {
@@ -154,7 +189,6 @@ pipeline {
                     // Archive all test results
                     junit allowEmptyResults: true, testResults: '**/test-results.xml'
                     
-                    // Clean up test container
                     sh '''
                         echo "Cleaning up test containers..."
                         docker rm -f mongodb-test || true
