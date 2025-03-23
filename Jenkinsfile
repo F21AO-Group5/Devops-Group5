@@ -55,7 +55,10 @@ pipeline {
                     passwordVariable: 'DOCKERHUB_PASS'    
                 )]) {
                     // Docker login using credentials (password will be masked in output)
-                    sh 'docker login -u $DOCKERHUB_USER -p $DOCKERHUB_PASS'
+                    sh '''
+                        echo "$DOCKERHUB_PASS" | docker login -u $DOCKERHUB_USER --password-stdin
+                        docker info
+                    '''
                 }
             }
         }
@@ -63,10 +66,12 @@ pipeline {
         stage('Push Images to Docker Hub') {
             steps {
                 // Push all service images to Docker Hub (uses the tags from build stage)
-                sh 'docker push $DOCKERHUB_ACCOUNT/user-service:$BUILD_NUMBER'
-                sh 'docker push $DOCKERHUB_ACCOUNT/patient-service:$BUILD_NUMBER'
-                sh 'docker push $DOCKERHUB_ACCOUNT/referral-service:$BUILD_NUMBER'
-                sh 'docker push $DOCKERHUB_ACCOUNT/lab-service:$BUILD_NUMBER'
+                sh '''
+                    docker push $DOCKERHUB_ACCOUNT/user-service:$BUILD_NUMBER || exit 1
+                    docker push $DOCKERHUB_ACCOUNT/patient-service:$BUILD_NUMBER || exit 1
+                    docker push $DOCKERHUB_ACCOUNT/referral-service:$BUILD_NUMBER || exit 1
+                    docker push $DOCKERHUB_ACCOUNT/lab-service:$BUILD_NUMBER || exit 1
+                '''
             }
         }
 
