@@ -127,3 +127,5 @@
 
     Authorization
     Auth Type - Bearer Token(token recieved from doctor/nurse/paramedics login)
+
+    Testing
