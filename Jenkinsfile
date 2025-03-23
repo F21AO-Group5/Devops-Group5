@@ -59,12 +59,18 @@ pipeline {
 
         stage('Push Images to Docker Hub') {
             steps {
-                // Push all service images to Docker Hub (uses the tags from build stage)
+                // Push all service images to Docker Hub with enhanced error handling
                 sh '''
-                    docker push $DOCKERHUB_ACCOUNT/user-service:$BUILD_NUMBER || exit 1
-                    docker push $DOCKERHUB_ACCOUNT/patient-service:$BUILD_NUMBER || exit 1
-                    docker push $DOCKERHUB_ACCOUNT/referral-service:$BUILD_NUMBER || exit 1
-                    docker push $DOCKERHUB_ACCOUNT/lab-service:$BUILD_NUMBER || exit 1
+                    services=("user-service" "patient-service" "referral-service" "lab-service")
+                    for service in "${services[@]}"; do
+                        echo "Pushing $DOCKERHUB_ACCOUNT/$service:$BUILD_NUMBER to Docker Hub..."
+                        if docker push $DOCKERHUB_ACCOUNT/$service:$BUILD_NUMBER; then
+                            echo "Successfully pushed $service image"
+                        else
+                            echo "Failed to push $service image. Check Docker Hub permissions and connection."
+                            exit 1
+                        fi
+                    done
                 '''
             }
         }
