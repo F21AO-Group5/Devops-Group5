@@ -2,12 +2,12 @@ pipeline {
     agent any
 
     environment {
-        // Docker Hub username (not a secret, just for image tagging)
-        DOCKERHUB_ACCOUNT = 'ak2267'  // Your Docker Hub username
-        PATH = "/usr/local/bin:/opt/homebrew/bin:${env.PATH}"  // Add both possible Docker paths
-        DOCKER_HOST = "unix:///Users/adarshkumar/.docker/run/docker.sock"  // Correct Docker socket path
-        DOCKER_CONTEXT = "desktop-linux"  // Docker context
-        HOME = "/Users/adarshkumar"  // Set home directory
+        DOCKERHUB_ACCOUNT = 'ak2267'  
+        PATH = "/usr/local/bin:/opt/homebrew/bin:${env.PATH}"  
+        DOCKER_HOST = "unix:///Users/adarshkumar/.docker/run/docker.sock"  
+        DOCKER_CONTEXT = "desktop-linux"  
+        HOME = "/Users/adarshkumar"  
+        JIRA_SITE = 'f21ao-group5.atlassian.net'  
     }
 
     stages {
@@ -113,6 +113,11 @@ pipeline {
                 sh 'docker build -t $DOCKERHUB_ACCOUNT/referral-service:$BUILD_NUMBER ./referral-service'
                 sh 'docker build -t $DOCKERHUB_ACCOUNT/lab-service:$BUILD_NUMBER ./lab-service'
             }
+            post {
+                always {
+                    jiraSendBuildInfo site: env.JIRA_SITE
+                }
+            }
         }
 
         stage('Docker Test') {
@@ -142,9 +147,17 @@ pipeline {
                     '''
                 }
             }
+            post {
+                always {
+                    jiraSendBuildInfo site: env.JIRA_SITE
+                }
+            }
         }
 
-        stage('Deploy with Docker Compose') {
+        stage('Deploy - Staging') {
+            when {
+                branch 'main'  // Changed from 'master' to 'main' to match your repository
+            }
             steps {
                 // Clean up existing containers and deploy new ones
                 sh '''
@@ -158,6 +171,34 @@ pipeline {
                     docker-compose up -d
                 '''
             }
+            post {
+                always {
+                    jiraSendDeploymentInfo site: env.JIRA_SITE,
+                        environmentId: 'patient-info-staging',
+                        environmentName: 'Patient Information System - Staging',
+                        environmentType: 'staging'
+                }
+            }
+        }
+
+        stage('Deploy - Production') {
+            when {
+                branch 'main'
+                expression { currentBuild.resultIsBetterOrEqualTo('SUCCESS') }
+            }
+            steps {
+                input message: 'Deploy to production?'
+                echo 'Deploying to Production...'
+                // Add your production deployment steps here
+            }
+            post {
+                always {
+                    jiraSendDeploymentInfo site: env.JIRA_SITE,
+                        environmentId: 'patient-info-prod',
+                        environmentName: 'Patient Information System - Production',
+                        environmentType: 'production'
+                }
+            }
         }
     }
 
@@ -167,6 +208,9 @@ pipeline {
         }
         success {
             echo "Build and deployment successful."
+        }
+        always {
+            jiraSendBuildInfo site: env.JIRA_SITE
         }
     }
 }
