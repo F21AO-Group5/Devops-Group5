@@ -69,23 +69,24 @@ pipeline {
                             echo "Installing dependencies for user-service..."
                             npm install
                             
-                            # Install test reporter locally
-                            npm install mocha-junit-reporter --save-dev
+                            # Install specific version of test reporter and required dependencies
+                            npm install --save-dev mocha@9.2.2 mocha-junit-reporter@2.2.0 chai@4.3.7 chai-http@4.3.0
                             
                             echo "Running user-service tests..."
                             # Run tests with JUnit reporter for Jenkins integration
                             export NODE_ENV=test
-                            export MOCHA_FILE="./test-results.xml"
+                            export MOCHA_FILE="test-results.xml"
                             export MONGO_URI="mongodb://localhost:27018/user-service-test"
                             export JWT_SECRET="test-secret"
                             
-                            # Run tests using local reporter
+                            # Run tests using local reporter with specific configuration
                             npx mocha \
                                 --recursive \
                                 --timeout 5000 \
                                 --reporter mocha-junit-reporter \
+                                --reporter-options mochaFile=./test-results.xml \
                                 --exit \
-                                "./test/**/*.test.js" || exit 1
+                                "./test/**/**.test.js" || exit 1
                         '''
                     }
                 }
