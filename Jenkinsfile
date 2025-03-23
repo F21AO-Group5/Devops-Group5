@@ -34,7 +34,7 @@ pipeline {
             environment {
                 // Test environment variables
                 NODE_ENV = 'test'
-                MONGO_URI = 'mongodb://localhost:27018/user-service-test'  // Changed port to 27018
+                MONGO_URI = 'mongodb://localhost:27018/test'
                 JWT_SECRET = 'test-secret'
             }
             steps {
@@ -89,11 +89,35 @@ pipeline {
                                 "./test/**/**.test.js" || exit 1
                         '''
                     }
+
+                    dir('patient-service') {
+                        sh '''
+                            echo "Installing dependencies for patient-service..."
+                            npm install
+                            
+                            # Install specific version of test reporter and required dependencies
+                            npm install --save-dev mocha@9.2.2 mocha-junit-reporter@2.2.0 chai@4.3.7 chai-http@4.3.0
+                            
+                            echo "Running patient-service tests..."
+                            export NODE_ENV=test
+                            export MOCHA_FILE="test-results.xml"
+                            export MONGO_URI="mongodb://localhost:27018/patient-service-test"
+                            export JWT_SECRET="test-secret"
+                            
+                            npx mocha \
+                                --recursive \
+                                --timeout 5000 \
+                                --reporter mocha-junit-reporter \
+                                --reporter-options mochaFile=./test-results.xml \
+                                --exit \
+                                "./test/**/**.test.js" || exit 1
+                        '''
+                    }
                 }
             }
             post {
                 always {
-                    // Archive the test results
+                    // Archive all test results
                     junit allowEmptyResults: true, testResults: '**/test-results.xml'
                     
                     // Clean up test container
