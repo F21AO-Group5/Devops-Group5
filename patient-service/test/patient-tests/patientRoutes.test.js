@@ -102,22 +102,6 @@ describe('Patient Routes Tests', () => {
             expect(res).to.have.status(403);
         });
  
-      //   it('should return 400 for invalid patient ID format', async () => {
-      //     const res = await chai.request(app)
-      //         .get('/api/patient/invalid_id')
-      //         .set('Authorization', `Bearer ${doctorToken}`);
-     
-      //     expect(res).to.have.status(400);
-      //     expect(res.body).to.have.property('msg', 'Invalid patient ID format');
-      // });
- 
-        // it('should return 404 for invalid patient ID', async () => {
-        //     const res = await chai.request(app)
-        //         .get('/api/patient/invalid_id')
-        //         .set('Authorization', `Bearer ${doctorToken}`);
- 
-        //     expect(res).to.have.status(404);
-        // });
     });
  
     describe('DELETE /api/patient/:id', () => {
