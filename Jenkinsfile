@@ -5,7 +5,6 @@ pipeline {
 
         stage('Build') {
             steps {
-                // Build Docker image on the host
                 sh "docker build -t mycompany/myapp:${env.BUILD_NUMBER} ."
                 jiraSendBuildInfo()
             }
