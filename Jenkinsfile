@@ -34,15 +34,33 @@ pipeline {
             environment {
                 // Test environment variables
                 NODE_ENV = 'test'
-                MONGO_URI = 'mongodb://localhost:27017/user-service-test'
+                MONGO_URI = 'mongodb://localhost:27018/user-service-test'  // Changed port to 27018
                 JWT_SECRET = 'test-secret'
             }
             steps {
                 script {
-                    // Start MongoDB container for testing
+                    // Clean up any existing test containers first
                     sh '''
-                        docker run -d --name mongodb-test -p 27017:27017 mongo:latest
-                        sleep 5  # Wait for MongoDB to start
+                        echo "Cleaning up any existing test containers..."
+                        docker rm -f mongodb-test || true
+                        
+                        echo "Starting MongoDB container for testing..."
+                        docker run -d --name mongodb-test -p 27018:27017 mongo:latest
+                        
+                        # Wait for MongoDB to be ready
+                        echo "Waiting for MongoDB to start..."
+                        for i in $(seq 1 30); do
+                            if docker exec mongodb-test mongosh --eval "db.stats()" > /dev/null 2>&1; then
+                                echo "MongoDB is ready!"
+                                break
+                            fi
+                            if [ $i -eq 30 ]; then
+                                echo "Error: MongoDB failed to start"
+                                exit 1
+                            fi
+                            echo "Waiting... ($i/30)"
+                            sleep 1
+                        done
                     '''
                     
                     dir('user-service') {
@@ -56,7 +74,7 @@ pipeline {
                             
                             echo "Running user-service tests..."
                             # Run tests with JUnit reporter for Jenkins integration
-                            MOCHA_FILE=./test-results.xml npx mocha --recursive --timeout 5000 --reporter mocha-junit-reporter
+                            NODE_ENV=test MOCHA_FILE=./test-results.xml npx mocha --recursive --timeout 5000 --reporter mocha-junit-reporter "./test/**/*.test.js"
                         '''
                     }
                 }
@@ -67,7 +85,10 @@ pipeline {
                     junit allowEmptyResults: true, testResults: '**/test-results.xml'
                     
                     // Clean up test container
-                    sh 'docker rm -f mongodb-test || true'
+                    sh '''
+                        echo "Cleaning up test containers..."
+                        docker rm -f mongodb-test || true
+                    '''
                 }
             }
         }
