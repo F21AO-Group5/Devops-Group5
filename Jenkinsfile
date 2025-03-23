@@ -32,7 +32,6 @@ pipeline {
 
         stage('Run Tests') {
             environment {
-                // Test environment variables
                 NODE_ENV = 'test'
                 MONGO_URI = 'mongodb://localhost:27018/test'
                 JWT_SECRET = 'test-secret'
@@ -63,8 +62,8 @@ pipeline {
                         done
                     '''
                     
+                    // Run User Service Tests
                     dir('user-service') {
-                        // Install dependencies and run tests
                         sh '''
                             echo "Installing dependencies for user-service..."
                             npm install
@@ -73,13 +72,14 @@ pipeline {
                             npm install --save-dev mocha@9.2.2 mocha-junit-reporter@2.2.0 chai@4.3.7 chai-http@4.3.0
                             
                             echo "Running user-service tests..."
-                            # Run tests with JUnit reporter for Jenkins integration
                             export NODE_ENV=test
                             export MOCHA_FILE="test-results.xml"
                             export MONGO_URI="mongodb://localhost:27018/user-service-test"
                             export JWT_SECRET="test-secret"
                             
-                            # Run tests using local reporter with specific configuration
+                            # Ensure mocha has execute permissions
+                            chmod +x node_modules/.bin/mocha
+                            
                             npx mocha \
                                 --recursive \
                                 --timeout 5000 \
@@ -90,6 +90,7 @@ pipeline {
                         '''
                     }
 
+                    // Run Patient Service Tests
                     dir('patient-service') {
                         sh '''
                             echo "Installing dependencies for patient-service..."
@@ -104,7 +105,11 @@ pipeline {
                             export MONGO_URI="mongodb://localhost:27018/patient-service-test"
                             export JWT_SECRET="test-secret"
                             
-                            npx mocha \
+                            # Ensure mocha has execute permissions
+                            chmod +x node_modules/.bin/mocha
+                            
+                            # Run tests using node directly instead of npx
+                            ./node_modules/.bin/mocha \
                                 --recursive \
                                 --timeout 5000 \
                                 --reporter mocha-junit-reporter \
