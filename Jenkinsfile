@@ -225,14 +225,36 @@ pipeline {
                         echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
                         docker info
                         
-                        # Push images with error handling
+                        # Function to push with retries
+                        push_with_retry() {
+                            local service=$1
+                            local max_attempts=3
+                            local attempt=1
+                            local timeout=300
+                            
+                            while [ $attempt -le $max_attempts ]; do
+                                echo "Attempt $attempt of $max_attempts: Pushing $DOCKERHUB_ACCOUNT/$service:$BUILD_NUMBER to Docker Hub..."
+                                if timeout $timeout docker push $DOCKERHUB_ACCOUNT/$service:$BUILD_NUMBER; then
+                                    echo "Successfully pushed $service image"
+                                    return 0
+                                else
+                                    echo "Failed to push $service image on attempt $attempt"
+                                    if [ $attempt -eq $max_attempts ]; then
+                                        echo "All attempts failed for $service"
+                                        return 1
+                                    fi
+                                    echo "Waiting 30 seconds before retry..."
+                                    sleep 30
+                                fi
+                                attempt=$((attempt + 1))
+                            done
+                        }
+                        
+                        # Push images with retry logic
                         services=("user-service" "patient-service" "referral-service" "lab-service")
                         for service in "${services[@]}"; do
-                            echo "Pushing $DOCKERHUB_ACCOUNT/$service:$BUILD_NUMBER to Docker Hub..."
-                            if docker push $DOCKERHUB_ACCOUNT/$service:$BUILD_NUMBER; then
-                                echo "Successfully pushed $service image"
-                            else
-                                echo "Failed to push $service image. Check Docker Hub permissions and connection."
+                            if ! push_with_retry "$service"; then
+                                echo "Failed to push $service image after all retries"
                                 exit 1
                             fi
                         done
@@ -242,17 +264,6 @@ pipeline {
             post {
                 always {
                     jiraSendBuildInfo site: env.JIRA_SITE
-                }
-            }
-        }
-
-        stage('Push Images to Docker Hub') {
-            steps {
-                script {
-                    sh 'docker push ak2267/user-service:${BUILD_NUMBER}'
-                    sh 'docker push ak2267/patient-service:${BUILD_NUMBER}'
-                    sh 'docker push ak2267/referral-service:${BUILD_NUMBER}'
-                    sh 'docker push ak2267/lab-service:${BUILD_NUMBER}'
                 }
             }
         }
