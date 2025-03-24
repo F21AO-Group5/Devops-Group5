@@ -1,0 +1,20 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: referral-service
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: referral-service
+  template:
+    metadata:
+      labels:
+        app: referral-service
+    spec:
+      containers:
+      - name: referral-service
+        image: eb4005/referral-service:latest
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 3003
