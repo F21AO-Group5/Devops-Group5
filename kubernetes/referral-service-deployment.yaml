@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
       - name: referral-service
-        image: eb4005/referral-service:latest
+        image: ak2267/referral-service:latest
         imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 3003
