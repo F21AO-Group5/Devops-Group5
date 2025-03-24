@@ -278,6 +278,9 @@ pipeline {
                         
                         # Update referral service image
                         sed -i.bak "s|ak2267/referral-service:latest|ak2267/referral-service:${BUILD_NUMBER}|" kubernetes/referral-service-deployment.yaml
+
+                        # Update lab service image
+                        sed -i.bak "s|ak2267/lab-service:latest|ak2267/lab-service:${BUILD_NUMBER}|" kubernetes/lab-service-deployment.yaml
                     '''
                     
                     // Apply Kubernetes configurations
@@ -293,11 +296,16 @@ pipeline {
                         # Deploy referral service
                         kubectl apply -f kubernetes/referral-service-deployment.yaml
                         kubectl apply -f kubernetes/referral-service-service.yaml
+
+                        # Deploy lab service
+                        kubectl apply -f kubernetes/lab-service-deployment.yaml
+                        kubectl apply -f kubernetes/lab-service-service.yaml
                         
                         # Wait for deployments to be ready
                         kubectl rollout status deployment/user-service --timeout=300s
                         kubectl rollout status deployment/patient-service --timeout=300s
                         kubectl rollout status deployment/referral-service --timeout=300s
+                        kubectl rollout status deployment/lab-service --timeout=300s
                     '''
                 }
             }
@@ -345,6 +353,19 @@ pipeline {
                         
                         echo "Referral Service Status:"
                         kubectl get service referral-service
+
+                        # Check lab service deployment status
+                        echo "Lab Service Deployment Status:"
+                        kubectl get deployments lab-service -o wide
+                        
+                        echo "Lab Service Pod Status:"
+                        kubectl get pods -l app=lab-service
+                        
+                        echo "Lab Service Logs:"
+                        kubectl logs -l app=lab-service --tail=50
+                        
+                        echo "Lab Service Status:"
+                        kubectl get service lab-service
                     '''
                 }
             }
