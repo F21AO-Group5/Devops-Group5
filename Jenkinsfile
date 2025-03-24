@@ -275,6 +275,9 @@ pipeline {
                         
                         # Update patient service image
                         sed -i.bak "s|ak2267/patient-service:latest|ak2267/patient-service:${BUILD_NUMBER}|" kubernetes/patient-service-deployment.yaml
+                        
+                        # Update referral service image
+                        sed -i.bak "s|ak2267/referral-service:latest|ak2267/referral-service:${BUILD_NUMBER}|" kubernetes/referral-service-deployment.yaml
                     '''
                     
                     // Apply Kubernetes configurations
@@ -287,9 +290,14 @@ pipeline {
                         kubectl apply -f kubernetes/patient-service-deployment.yaml
                         kubectl apply -f kubernetes/patient-service-service.yaml
                         
+                        # Deploy referral service
+                        kubectl apply -f kubernetes/referral-service-deployment.yaml
+                        kubectl apply -f kubernetes/referral-service-service.yaml
+                        
                         # Wait for deployments to be ready
                         kubectl rollout status deployment/user-service --timeout=300s
                         kubectl rollout status deployment/patient-service --timeout=300s
+                        kubectl rollout status deployment/referral-service --timeout=300s
                     '''
                 }
             }
@@ -324,6 +332,19 @@ pipeline {
                         
                         echo "Patient Service Status:"
                         kubectl get service patient-service
+                        
+                        # Check referral service deployment status
+                        echo "Referral Service Deployment Status:"
+                        kubectl get deployments referral-service -o wide
+                        
+                        echo "Referral Service Pod Status:"
+                        kubectl get pods -l app=referral-service
+                        
+                        echo "Referral Service Logs:"
+                        kubectl logs -l app=referral-service --tail=50
+                        
+                        echo "Referral Service Status:"
+                        kubectl get service referral-service
                     '''
                 }
             }
