@@ -7,7 +7,10 @@ pipeline {
         DOCKER_HOST = "unix:///Users/adarshkumar/.docker/run/docker.sock"  
         DOCKER_CONTEXT = "desktop-linux"  
         HOME = "/Users/adarshkumar"  
-        JIRA_SITE = 'f21ao-group5.atlassian.net'  
+        JIRA_SITE = 'f21ao-group5.atlassian.net'
+        HTTP_PROXY = ""
+        HTTPS_PROXY = ""
+        NO_PROXY = "localhost,127.0.0.1"
     }
 
     stages {
@@ -222,6 +225,9 @@ pipeline {
             steps {
                 withCredentials([usernamePassword(credentialsId: 'docker-hub-id', passwordVariable: 'DOCKER_PASSWORD', usernameVariable: 'DOCKER_USERNAME')]) {
                     sh '''
+                        # Unset proxy settings temporarily for Docker operations
+                        unset HTTP_PROXY HTTPS_PROXY http_proxy https_proxy
+                        
                         echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
                         docker info
                         
@@ -230,11 +236,10 @@ pipeline {
                             local service=$1
                             local max_attempts=3
                             local attempt=1
-                            local timeout=300
                             
                             while [ $attempt -le $max_attempts ]; do
                                 echo "Attempt $attempt of $max_attempts: Pushing $DOCKERHUB_ACCOUNT/$service:$BUILD_NUMBER to Docker Hub..."
-                                if timeout $timeout docker push $DOCKERHUB_ACCOUNT/$service:$BUILD_NUMBER; then
+                                if docker push $DOCKERHUB_ACCOUNT/$service:$BUILD_NUMBER; then
                                     echo "Successfully pushed $service image"
                                     return 0
                                 else
@@ -251,8 +256,7 @@ pipeline {
                         }
                         
                         # Push images with retry logic
-                        services=("user-service" "patient-service" "referral-service" "lab-service")
-                        for service in "${services[@]}"; do
+                        for service in user-service patient-service referral-service lab-service; do
                             if ! push_with_retry "$service"; then
                                 echo "Failed to push $service image after all retries"
                                 exit 1
