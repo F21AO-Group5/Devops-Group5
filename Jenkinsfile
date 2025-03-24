@@ -246,6 +246,67 @@ pipeline {
             }
         }
 
+        stage('Push Images to Docker Hub') {
+            steps {
+                script {
+                    sh 'docker push ak2267/user-service:${BUILD_NUMBER}'
+                    sh 'docker push ak2267/patient-service:${BUILD_NUMBER}'
+                    sh 'docker push ak2267/referral-service:${BUILD_NUMBER}'
+                    sh 'docker push ak2267/lab-service:${BUILD_NUMBER}'
+                }
+            }
+        }
+
+        stage('Deploy to Kubernetes') {
+            steps {
+                script {
+                    // Create namespace if it doesn't exist
+                    sh '''
+                        if ! kubectl get namespace f21ao &> /dev/null; then
+                            kubectl create namespace f21ao
+                        fi
+                        kubectl config set-context --current --namespace=f21ao
+                    '''
+                    
+                    // Update image tag in deployment file
+                    sh '''
+                        sed -i.bak "s|ak2267/user-service:latest|ak2267/user-service:${BUILD_NUMBER}|" kubernetes/user-service-deployment.yaml
+                    '''
+                    
+                    // Apply Kubernetes configurations
+                    sh '''
+                        kubectl apply -f kubernetes/user-service-deployment.yaml
+                        kubectl apply -f kubernetes/user-service-service.yaml
+                        
+                        # Wait for deployment to be ready
+                        kubectl rollout status deployment/user-service --timeout=300s
+                    '''
+                }
+            }
+        }
+
+        stage('Kubernetes Health Check') {
+            steps {
+                script {
+                    sh '''
+                        # Check deployment status
+                        kubectl get deployments user-service -o wide
+                        
+                        # Check pod status and logs
+                        echo "Pod Status:"
+                        kubectl get pods -l app=user-service
+                        
+                        echo "Pod Logs:"
+                        kubectl logs -l app=user-service --tail=50
+                        
+                        # Check service status
+                        echo "Service Status:"
+                        kubectl get service user-service
+                    '''
+                }
+            }
+        }
+
         stage('Deploy - Staging') {
             when {
                 branch 'main'  // Changed from 'master' to 'main' to match your repository
