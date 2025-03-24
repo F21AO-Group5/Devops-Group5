@@ -268,18 +268,28 @@ pipeline {
                         kubectl config set-context --current --namespace=f21ao
                     '''
                     
-                    // Update image tag in deployment file
+                    // Update image tags in deployment files
                     sh '''
+                        # Update user service image
                         sed -i.bak "s|ak2267/user-service:latest|ak2267/user-service:${BUILD_NUMBER}|" kubernetes/user-service-deployment.yaml
+                        
+                        # Update patient service image
+                        sed -i.bak "s|ak2267/patient-service:latest|ak2267/patient-service:${BUILD_NUMBER}|" kubernetes/patient-service-deployment.yaml
                     '''
                     
                     // Apply Kubernetes configurations
                     sh '''
+                        # Deploy user service
                         kubectl apply -f kubernetes/user-service-deployment.yaml
                         kubectl apply -f kubernetes/user-service-service.yaml
                         
-                        # Wait for deployment to be ready
+                        # Deploy patient service
+                        kubectl apply -f kubernetes/patient-service-deployment.yaml
+                        kubectl apply -f kubernetes/patient-service-service.yaml
+                        
+                        # Wait for deployments to be ready
                         kubectl rollout status deployment/user-service --timeout=300s
+                        kubectl rollout status deployment/patient-service --timeout=300s
                     '''
                 }
             }
@@ -289,19 +299,31 @@ pipeline {
             steps {
                 script {
                     sh '''
-                        # Check deployment status
+                        # Check user service deployment status
+                        echo "User Service Deployment Status:"
                         kubectl get deployments user-service -o wide
                         
-                        # Check pod status and logs
-                        echo "Pod Status:"
+                        echo "User Service Pod Status:"
                         kubectl get pods -l app=user-service
                         
-                        echo "Pod Logs:"
+                        echo "User Service Logs:"
                         kubectl logs -l app=user-service --tail=50
                         
-                        # Check service status
-                        echo "Service Status:"
+                        echo "User Service Status:"
                         kubectl get service user-service
+                        
+                        # Check patient service deployment status
+                        echo "Patient Service Deployment Status:"
+                        kubectl get deployments patient-service -o wide
+                        
+                        echo "Patient Service Pod Status:"
+                        kubectl get pods -l app=patient-service
+                        
+                        echo "Patient Service Logs:"
+                        kubectl logs -l app=patient-service --tail=50
+                        
+                        echo "Patient Service Status:"
+                        kubectl get service patient-service
                     '''
                 }
             }
