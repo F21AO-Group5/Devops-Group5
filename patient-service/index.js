@@ -19,7 +19,7 @@ mongoose
  .then(() => console.log('MongoDB Connected...'))
  .catch(err => console.log(err));
 
-// Routesl
+// Routes
 app.use('/api/patient', patientRoutes);
 app.use('/api/treatment', treatmentRoutes); 
 
@@ -32,4 +32,4 @@ app.get('/', (req, res) => {
 const PORT = process.env.PORT || 3002;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
 
-module.exports =  app;
+module.exports = app;

@@ -100,23 +100,11 @@ pipeline {
                             # Install specific version of test reporter and required dependencies
                             npm install --save-dev mocha@9.2.2 mocha-junit-reporter@2.2.0 chai@4.3.7 chai-http@4.3.0
                             
-                            echo "Running patient-service tests..."
+                            echo 'Running patient-service tests...'
                             export NODE_ENV=test
-                            export MOCHA_FILE="test-results.xml"
-                            export MONGO_URI="mongodb://localhost:27018/patient-service-test"
-                            export JWT_SECRET="test-secret"
-                            
-                            # Ensure mocha has execute permissions
+                            export MOCHA_FILE=test-results.xml
                             chmod +x node_modules/.bin/mocha
-                            
-                            # Run tests using node directly instead of npx
-                            ./node_modules/.bin/mocha \
-                                --recursive \
-                                --timeout 5000 \
-                                --reporter mocha-junit-reporter \
-                                --reporter-options mochaFile=./test-results.xml \
-                                --exit \
-                                "./test/**/**.test.js" || exit 1
+                            ./node_modules/.bin/mocha --recursive --timeout 5000 --reporter mocha-junit-reporter --reporter-options mochaFile=./test-results.xml --exit --trace-warnings './test/**/**.test.js'
                         '''
                     }
 
