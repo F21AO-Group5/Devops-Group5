@@ -2,7 +2,6 @@ const chai = require('chai');
 const chaiHttp = require('chai-http');
 const mongoose = require('mongoose');
 const jwt = require('jsonwebtoken');
-const config = require('config');
  
 const app = require('../../index');  // Adjust path as needed
 const Patient = require('../../models/Patient');
@@ -18,9 +17,9 @@ describe('Patient Routes Tests', () => {
  
     // Generate test tokens
     before(() => {
-        clerkToken = jwt.sign({ role: 'clerk' }, config.get('JWT_SECRET'));
-        doctorToken = jwt.sign({ role: 'doctor' }, config.get('JWT_SECRET'));
-        nurseToken = jwt.sign({ role: 'nurse' }, config.get('JWT_SECRET'));
+        clerkToken = jwt.sign({ role: 'clerk' }, process.env.JWT_SECRET);
+        doctorToken = jwt.sign({ role: 'doctor' }, process.env.JWT_SECRET);
+        nurseToken = jwt.sign({ role: 'nurse' }, process.env.JWT_SECRET);
     });
  
     // Clean database and create test patient before each test
