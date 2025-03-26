@@ -199,6 +199,22 @@ pipeline {
                 }
             }
         }
+        stage('SonarQube Analysis') {
+            environment {
+                SONAR_AUTH_TOKEN = credentials('sonarqube-token')
+            }
+        steps {
+            withSonarQubeEnv('SonarQube') {
+                sh '''
+                    sonar-scanner \
+                        -Dsonar.projectKey=f21ao-group5 \
+                        -Dsonar.sources=. \
+                        -Dsonar.host.url=http://localhost:9000 \
+                        -Dsonar.login=$SONAR_AUTH_TOKEN
+                '''
+            }
+        }
+    }
 
         stage('Build Docker Images') {
             steps {
